@@ -22,8 +22,8 @@ app.post("/api/rollingpapers", cors(), (req, res) => {
     // 리턴값이 있는 게 아니라 콜백함수로 처리됨
     // res.status(400) : 생략 가능. 결과에 영향을 미치지 않는다. 에러가 나도 잘 작동됨
     pool.query(
-        "INSERT INTO rollingpaper (title, maker, receiver, created_at) VALUES(?,?,?,now())",
-        [req.body.title, req.body.maker, req.body.receiver, req.body.created_at],
+        "INSERT INTO rollingpaper (title, sender, receiver, created_at) VALUES(?,?,?,now())",
+        [req.body.title, req.body.sender, req.body.receiver, req.body.created_at],
         (err, rows, fields) => {
             if ( err ) res.status(400).json({result: err})
             else res.json({result: "ok"})
@@ -33,7 +33,7 @@ app.post("/api/rollingpapers", cors(), (req, res) => {
 app.get("/api/rollingpapers", cors(), (req, res) => {
     pool.query("SELECT * FROM rollingpaper", (err, rows, fields) => {
         res.json({result: rows});
-        res.sendFile('127.0.0:5502/main.html');// 파일로 보내기
+        //res.sendFile('127.0.0:5502/main.html');// 파일로 보내기
     })
 })
 
@@ -74,7 +74,7 @@ app.patch("/api/rollingpapers/:id", cors(), (req, res) => {
                 const modified = Object.assign(rows[0], req.body)// Object.assign: 
                 // rows[0]: 첫 번째 데이터, req.body: 내가 보낸 데이터
 
-                pool.query("UPDATE rollingpaper SET maker = ?, receiver = ?, title = ? WHERE id = ?",
+                pool.query("UPDATE rollingpaper SET sender = ?, receiver = ?, title = ? WHERE id = ?",
                     [modified.title, modified.maker, modified.title, id],
                     function(err, rows, fields) {
                         if ( err) {

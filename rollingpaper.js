@@ -4,6 +4,7 @@ const mysql = require('mysql2')
 const cors = require('cors')
 
 const app = express()
+app.use(cors())
 app.use(bodyParser.json())// body로 보낸 데이터를 json으로 해석해서 컴퓨터가 이해하게 된다
 
 const port = 3000
@@ -31,7 +32,8 @@ app.post("/api/rollingpapers", cors(), (req, res) => {
 
 app.get("/api/rollingpapers", cors(), (req, res) => {
     pool.query("SELECT * FROM rollingpaper", (err, rows, fields) => {
-        res.json({result: rows})
+        res.json({result: rows});
+        res.sendFile('127.0.0:5502/main.html');// 파일로 보내기
     })
 })
 

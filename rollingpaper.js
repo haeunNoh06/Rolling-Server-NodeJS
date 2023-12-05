@@ -137,8 +137,8 @@ app.post("/api/papers", (req, res) => {
     // 리턴값이 있는 게 아니라 콜백함수로 처리됨
     // res.status(400) : 생략 가능. 결과에 영향을 미치지 않는다. 에러가 나도 잘 작동됨
     pool.query(
-        "INSERT INTO paper (content, writer, font) VALUES(?,?,?)",
-        [req.body.content, req.body.writer, req.body.font],
+        "INSERT INTO paper (paper_id, content, writer, font) VALUES(?,?,?,?)",
+        [req.body.paper_id, req.body.content, req.body.writer, req.body.font],
         (err, rows, fields) => {
             if ( err ) res.status(400).json({result: err})
             else res.json({result: "ok"})

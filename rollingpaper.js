@@ -137,8 +137,8 @@ app.post("/api/papers", (req, res) => {
     // 리턴값이 있는 게 아니라 콜백함수로 처리됨
     // res.status(400) : 생략 가능. 결과에 영향을 미치지 않는다. 에러가 나도 잘 작동됨
     pool.query(
-        "INSERT INTO paper (content, writer) VALUES(?,?)",
-        [req.body.title, req.body.author, req.body.content],
+        "INSERT INTO paper (content, writer, font) VALUES(?,?,?)",
+        [req.body.content, req.body.writer, req.body.font],
         (err, rows, fields) => {
             if ( err ) res.status(400).json({result: err})
             else res.json({result: "ok"})
@@ -154,7 +154,7 @@ app.get("/api/papers", (req, res) => {
 // 롤링페이퍼와 편지의 아이디가 같다면 
 app.get("/api/papers/:id",  (req, res) => {
     const id = req.params.id
-    pool.query("SELECT * FROM paper P INNER JOIN rollingpaper R ON P.id = R.id WHERE id = ?", [id], (err, rows, fields) => {
+    pool.query("SELECT * FROM paper P INNER JOIN rollingpaper R ON P.paper_id = R.id WHERE id = ?", [id], (err, rows, fields) => {
         if ( rows.length === 0 ) res.send ({result: null})
         else res.json({ result: rows[0] })
     })
@@ -162,7 +162,7 @@ app.get("/api/papers/:id",  (req, res) => {
 
 app.delete("/api/papers/:id", (req, res) => {
     const id = req.params.id
-    pool.query("DELETE FROM paper WHERE paperId = ?",
+    pool.query("DELETE FROM paper WHERE id = ?",
         [id], 
         function (err, rows, fields) {
             // 실제로 영향 받은(지워진) 행이 없으면
@@ -178,7 +178,7 @@ app.delete("/api/papers/:id", (req, res) => {
 app.patch("/api/papers/:id", (req, res) => {
     const id = req.params.id
     pool.query(
-        "SELECT * FROM paper WHERE paperId = ?",
+        "SELECT * FROM paper WHERE id = ?",
         [id],
         function(err, rows, fields) {
             if ( rows.affectedRows === 0 ) {
@@ -189,8 +189,8 @@ app.patch("/api/papers/:id", (req, res) => {
                 const modified = Object.assign(rows[0], req.body)// Object.assign: 
                 // rows[0]: 첫 번째 데이터, req.body: 내가 보낸 데이터
 
-                pool.query("UPDATE paper SET content = ?, writer = ? WHERE id = ?",
-                    [modified.title, modified.author, modified.content, id],
+                pool.query("UPDATE paper SET content = ?, writer = ?, font = ? WHERE id = ?",
+                    [modified.content, modified.writer, modified.font, id],
                     function(err, rows, fields) {
                         if ( err) {
                             res.status(400).json({result: err})
@@ -209,7 +209,7 @@ app.patch("/api/papers/:id", (req, res) => {
 app.post("/api/users", (req, res) => {
     // 최소한의 보안
     bcrypt.hash(req.body.password, SALT_ROUNDS, function(err, hash) {
-        pool.query("INSERT INTO users(email, password, name, createdAt) VALUES(?, ?, ?, now())",
+        pool.query("INSERT INTO users(email, password, name, created_at) VALUES(?, ?, ?, now())",
             [req.body.email, hash, req.body.name],
             function(err, rows, fields) { 
                 if(err) {

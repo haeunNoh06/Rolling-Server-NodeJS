@@ -104,7 +104,7 @@ app.patch("/api/rollingpapers/:id", cors(), (req, res) => {
         "SELECT * FROM rollingpaper WHERE id = ?",
         [id],
         function(err, rows, fields) {
-            if ( rows.affectedRows === 0 ) {
+            if ( !rows.affectedRows ) {
                 res.status(404).json({result: null})
             } else {
                 // 기존 데이터와 받은 데이터를 머지하기

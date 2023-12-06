@@ -2,6 +2,9 @@ const express = require('express')
 const bodyParser = require("body-parser")
 const mysql = require('mysql2')
 const cors = require('cors')
+const session = require('express-session')
+const bcrypt = require('bcrypt');//1
+const SALT_ROUNDS = 10// 2의 10승 반복
 
 const app = express()
 app.use(cors())
@@ -15,6 +18,19 @@ const pool = mysql.createPool({// connection을 여러 개 만들어 쓸 수 있
     password: 'gkdms~!1357',
     database: 'rolling_db'
 })
+
+const sec = 1000
+const hour = 60 * 60 * sec
+// session 관련 설정 (=만료시간)
+app.use(session({
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        // maxAge: 10 * sec
+        maxAge: hour
+    }
+}))
 
 // 미들웨어: 중간에 껴서 잠깐 검사를 한다.
 const loginRequired = function(req, res, next) {
@@ -89,7 +105,7 @@ app.delete("/api/rollingpapers/:id", cors(), (req, res) => {
         [id], 
         function (err, rows, fields) {
             // 실제로 영향 받은(지워진) 행이 없으면
-            if ( rows.affectedRows === 0 ) {
+            if ( !rows.affectedRows ) {
                 res.status(404).json({result: null})
             } else {
                 res.json({ result: "ok"})
@@ -209,8 +225,8 @@ app.patch("/api/papers/:id", (req, res) => {
 app.post("/api/users", (req, res) => {
     // 최소한의 보안
     bcrypt.hash(req.body.password, SALT_ROUNDS, function(err, hash) {
-        pool.query("INSERT INTO users(email, password, name, created_at) VALUES(?, ?, ?, now())",
-            [req.body.email, hash, req.body.name],
+        pool.query("INSERT INTO users(name, email, password, created_at) VALUES(?, ?, ?, now())",
+            [req.body.name, req.body.email, hash],
             function(err, rows, fields) { 
                 if(err) {
                     res.json({ result: err })
@@ -284,8 +300,7 @@ app.post("/api/login", (req, res) => {
                     if(result) {
                         req.session.user = {
                             email: user.email,
-                            name: user.name,
-                            roles: user.roles.split(",")
+                            name: user.name
                         }
                         req.session.save()
                         res.json({ result: "로그인 성공" })

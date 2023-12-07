@@ -171,8 +171,19 @@ app.get("/api/papers", (req, res) => {
 app.get("/api/papers/:id",  (req, res) => {
     const id = req.params.id
     pool.query("SELECT * FROM paper P INNER JOIN rollingpaper R ON P.paper_id = R.id WHERE id = ?", [id], (err, rows, fields) => {
-        if ( rows.length === 0 ) res.send ({result: null})
-        else res.json({ result: rows[0] })
+        if ( rows && rows.length === 0 ) res.json ({result: null})
+        else if(rows) res.json({ result: rows[0] })
+        else res.json({result: "내부 서버 오류"})
+    })
+})
+
+app.get("/api/papers/:paper_id/:id",  (req, res) => {
+    const id = req.params.id
+    const paper_id = req.params.paper_id
+    pool.query("SELECT * FROM paper WHERE id = ?", [id], (err, rows, fields) => {
+        if ( rows && rows.length === 0 ) res.json ({result: null})
+        else if(rows) res.json({ result: rows[0] })
+        else res.json({result: "내부 서버 오류"})
     })
 })
 

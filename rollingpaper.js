@@ -99,20 +99,38 @@ app.get("/api/rollingpapers/:id", cors(),  (req, res) => {
     })
 })
 
+// 이 라우트를 추가하여 페이퍼 삭제를 처리
 app.delete("/api/rollingpapers/:id", cors(), (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
+
+    // 데이터베이스에서 페이퍼를 삭제하는 로직을 추가
     pool.query("DELETE FROM rollingpaper WHERE id = ?",
-        [id], 
+        [id],
         function (err, rows, fields) {
-            // 실제로 영향 받은(지워진) 행이 없으면
-            if ( !rows.affectedRows ) {
-                res.status(404).json({result: null})
+            // 영향 받은 행이 없는지 확인
+            if (rows && rows.affectedRows === 0) {
+                res.status(404).json({result: null});
             } else {
-                res.json({ result: "ok"})
+                res.json({ result: "ok" });
             }
         }
-    )
-})
+    );
+});
+
+// app.delete("/api/rollingpapers/:id", cors(), (req, res) => {
+//     const id = req.params.id
+//     pool.query("DELETE FROM rollingpaper WHERE id = ?",
+//         [id], 
+//         function (err, rows, fields) {
+//             // 실제로 영향 받은(지워진) 행이 없으면
+//             if ( rows && !rows.affectedRows ) {
+//                 res.status(404).json({result: null})
+//             } else {
+//                 res.json({ result: "ok"})
+//             }
+//         }
+//     )
+// })
 
 app.patch("/api/rollingpapers/:id", cors(), (req, res) => {
     const id = req.params.id
@@ -187,20 +205,24 @@ app.get("/api/papers/:paper_id/:id",  (req, res) => {
     })
 })
 
-app.delete("/api/papers/:id", (req, res) => {
-    const id = req.params.id
-    pool.query("DELETE FROM paper WHERE id = ?",
-        [id], 
+// 이 라우트를 추가하여 페이퍼 삭제를 처리
+app.delete("/api/papers/:paper_id/:id", cors(), (req, res) => {
+    const paper_id = req.params.paper_id;
+    const id = req.params.id;
+
+    // 데이터베이스에서 페이퍼를 삭제하는 로직을 추가
+    pool.query("DELETE FROM paper WHERE paper_id = ? AND id = ?",
+        [paper_id, id], 
         function (err, rows, fields) {
-            // 실제로 영향 받은(지워진) 행이 없으면
-            if ( rows.affectedRows === 0 ) {
-                res.status(404).json({result: null})
+            // 영향 받은 행이 없는지 확인
+            if (rows && rows.affectedRows === 0) {
+                res.status(404).json({result: null});
             } else {
-                res.json({ result: "ok"})
+                res.json({ result: "ok" });
             }
         }
-    )
-})
+    );
+});
 
 app.patch("/api/papers/:id", (req, res) => {
     const id = req.params.id
@@ -222,6 +244,7 @@ app.patch("/api/papers/:id", (req, res) => {
                         if ( err) {
                             res.status(400).json({result: err})
                         } else {
+                            console.log([modified.content, modified.writer, modified.font, id]);
                             res.json({result: "ok"})
                         }
                     }

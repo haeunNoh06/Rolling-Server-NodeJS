@@ -10,6 +10,9 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())// body로 보낸 데이터를 json으로 해석해서 컴퓨터가 이해하게 된다
 
+const swaggerFile = require('./swagger-output.json')
+const swaggerUi = require('swagger-ui-express')
+
 const port = 3000
 const pool = mysql.createPool({// connection을 여러 개 만들어 쓸 수 있다.(기본10개)
     host: 'localhost',
@@ -43,6 +46,9 @@ const loginRequired = function(req, res, next) {
         res.status(440).json({ result: "현재 로그인 상태가 아닙니다." })
     }
 }
+
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile, { explorer: true }));
 
 // 1. 로그인리콰이어드
 // 2. 롤리콰이어드
